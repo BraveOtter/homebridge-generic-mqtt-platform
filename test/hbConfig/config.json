@@ -1,13 +1,13 @@
 {
   "bridge": {
-    "name": "PluginTemplate",
+    "name": "GenericMqttDev",
     "username": "AA:BB:CC:DD:EE:FF",
     "port": 51826,
     "pin": "031-45-154"
   },
-  "description": "HomeBridge HTTP Status Control",
+  "description": "Generic MQTT Platform development bridge",
   "plugins": [
-    "homebridge-plugin-name",
+    "homebridge-generic-mqtt-platform",
     "homebridge-config-ui-x"
   ],
   "platforms": [
@@ -23,8 +23,113 @@
       "debug": false
     },
     {
-      "name": "homebridge-plugin-name",
-      "platform": "ExampleHomebridgePlugin"
+      "name": "Generic MQTT Platform",
+      "platform": "GenericMqttPlatform",
+      "mqtt": {
+        "url": "mqtt://localhost:1883",
+        "username": "",
+        "password": ""
+      },
+      "accessories": [
+        {
+          "id": "plant1",
+          "name": "Plant 1",
+          "manufacturer": "DIY",
+          "model": "ESP32-C6 Sensor",
+          "services": [
+            {
+              "type": "HumiditySensor",
+              "name": "Soil Humidity",
+              "characteristics": {
+                "CurrentRelativeHumidity": {
+                  "getTopic": "irrigation/plant1/humidity",
+                  "defaultValue": 0
+                }
+              }
+            },
+            {
+              "type": "TemperatureSensor",
+              "name": "Temperature",
+              "characteristics": {
+                "CurrentTemperature": {
+                  "getTopic": "irrigation/plant1/temperature",
+                  "defaultValue": 20
+                }
+              }
+            },
+            {
+              "type": "Battery",
+              "name": "Battery",
+              "characteristics": {
+                "BatteryLevel": {
+                  "getTopic": "irrigation/plant1/battery",
+                  "defaultValue": 100
+                },
+                "StatusLowBattery": {
+                  "getTopic": "irrigation/plant1/batteryLow",
+                  "defaultValue": 0
+                }
+              }
+            },
+            {
+              "type": "Valve",
+              "name": "Irrigation",
+              "characteristics": {
+                "Active": {
+                  "getTopic": "irrigation/plant1/pump/state",
+                  "setTopic": "irrigation/plant1/pump/set",
+                  "onValue": "ON",
+                  "offValue": "OFF",
+                  "defaultValue": 0
+                },
+                "InUse": {
+                  "getTopic": "irrigation/plant1/pump/state",
+                  "onValue": "ON",
+                  "offValue": "OFF",
+                  "defaultValue": 0
+                },
+                "ValveType": {
+                  "defaultValue": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "relay1",
+          "name": "Relay Module",
+          "manufacturer": "DIY",
+          "model": "ESP32 Relay",
+          "services": [
+            {
+              "type": "Switch",
+              "name": "Relay 1",
+              "subtype": "relay1",
+              "characteristics": {
+                "On": {
+                  "getTopic": "devices/relay1/ch1/state",
+                  "setTopic": "devices/relay1/ch1/set",
+                  "onValue": "ON",
+                  "offValue": "OFF"
+                }
+              }
+            },
+            {
+              "type": "Switch",
+              "name": "Relay 2",
+              "subtype": "relay2",
+              "characteristics": {
+                "On": {
+                  "getTopic": "devices/relay1/ch2/state",
+                  "setTopic": "devices/relay1/ch2/set",
+                  "onValue": "ON",
+                  "offValue": "OFF"
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "accessories": []

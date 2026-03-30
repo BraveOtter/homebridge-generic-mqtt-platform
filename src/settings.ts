@@ -1,9 +1,9 @@
 /**
- * This is the name of the platform that users will use to register the plugin in the Homebridge config.json
+ * Platform name used in Homebridge config.json under "platform".
  */
-export const PLATFORM_NAME = 'ExampleHomebridgePlugin';
+export const PLATFORM_NAME = 'GenericMqttPlatform';
 
 /**
- * This must match the name of your plugin as defined the package.json `name` property
+ * Plugin identifier — must match the "name" field in package.json.
  */
-export const PLUGIN_NAME = 'homebridge-plugin-name';
+export const PLUGIN_NAME = 'homebridge-generic-mqtt-platform';

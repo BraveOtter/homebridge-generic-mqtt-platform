@@ -1,17 +1,209 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "GenericMqttPlatform",
   "pluginType": "platform",
   "singular": true,
   "strictValidation": false,
+  "headerDisplay": "A generic MQTT-to-HomeKit bridge. Define accessories and services in config to map MQTT topics to HomeKit characteristics.",
   "schema": {
     "type": "object",
-    "required": ["name"],
-    "additionalProperties": false,
+    "required": ["name", "mqtt", "accessories"],
     "properties": {
       "name": {
-        "title": "Name",
+        "title": "Platform Name",
         "type": "string",
-        "default": "Example Dynamic Platform"
+        "default": "Generic MQTT Platform"
+      },
+      "mqtt": {
+        "title": "MQTT Broker",
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "title": "Broker URL",
+            "type": "string",
+            "placeholder": "mqtt://localhost:1883",
+            "description": "MQTT broker URL (e.g. mqtt://host:port)"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "clientId": {
+            "title": "Client ID",
+            "type": "string",
+            "description": "Optional — auto-generated if omitted"
+          },
+          "baseTopic": {
+            "title": "Base Topic",
+            "type": "string",
+            "description": "Optional prefix prepended to all topics"
+          },
+          "keepalive": {
+            "title": "Keep Alive (seconds)",
+            "type": "integer",
+            "default": 60,
+            "minimum": 5
+          },
+          "qos": {
+            "title": "QoS",
+            "type": "integer",
+            "default": 0,
+            "oneOf": [
+              { "title": "0 — At most once", "enum": [0] },
+              { "title": "1 — At least once", "enum": [1] },
+              { "title": "2 — Exactly once", "enum": [2] }
+            ]
+          }
+        }
+      },
+      "accessories": {
+        "title": "Accessories",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "name", "services"],
+          "properties": {
+            "id": {
+              "title": "Unique ID",
+              "type": "string",
+              "description": "Unique stable identifier for this accessory"
+            },
+            "name": {
+              "title": "Display Name",
+              "type": "string"
+            },
+            "manufacturer": {
+              "title": "Manufacturer",
+              "type": "string"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string"
+            },
+            "serialNumber": {
+              "title": "Serial Number",
+              "type": "string"
+            },
+            "firmwareRevision": {
+              "title": "Firmware Revision",
+              "type": "string"
+            },
+            "availabilityTopic": {
+              "title": "Availability Topic",
+              "type": "string",
+              "description": "MQTT topic for online/offline status"
+            },
+            "availabilityOnline": {
+              "title": "Online Payload",
+              "type": "string",
+              "default": "online"
+            },
+            "availabilityOffline": {
+              "title": "Offline Payload",
+              "type": "string",
+              "default": "offline"
+            },
+            "services": {
+              "title": "Services",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["type", "name", "characteristics"],
+                "properties": {
+                  "type": {
+                    "title": "Service Type",
+                    "type": "string",
+                    "oneOf": [
+                      { "title": "Humidity Sensor", "enum": ["HumiditySensor"] },
+                      { "title": "Temperature Sensor", "enum": ["TemperatureSensor"] },
+                      { "title": "Contact Sensor", "enum": ["ContactSensor"] },
+                      { "title": "Leak Sensor", "enum": ["LeakSensor"] },
+                      { "title": "Motion Sensor", "enum": ["MotionSensor"] },
+                      { "title": "Occupancy Sensor", "enum": ["OccupancySensor"] },
+                      { "title": "Switch", "enum": ["Switch"] },
+                      { "title": "Valve", "enum": ["Valve"] },
+                      { "title": "Battery", "enum": ["Battery"] }
+                    ]
+                  },
+                  "name": {
+                    "title": "Service Name",
+                    "type": "string"
+                  },
+                  "subtype": {
+                    "title": "Subtype",
+                    "type": "string",
+                    "description": "Required when using multiple services of the same type"
+                  },
+                  "characteristics": {
+                    "title": "Characteristics",
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "getTopic": {
+                          "title": "Get Topic",
+                          "type": "string",
+                          "description": "MQTT topic to subscribe for reading"
+                        },
+                        "setTopic": {
+                          "title": "Set Topic",
+                          "type": "string",
+                          "description": "MQTT topic to publish for writing"
+                        },
+                        "onValue": {
+                          "title": "On Value",
+                          "type": "string",
+                          "description": "Payload that means ON / true / active"
+                        },
+                        "offValue": {
+                          "title": "Off Value",
+                          "type": "string",
+                          "description": "Payload that means OFF / false / inactive"
+                        },
+                        "jsonPath": {
+                          "title": "JSON Path",
+                          "type": "string",
+                          "description": "Dot-separated path to extract from JSON payload"
+                        },
+                        "defaultValue": {
+                          "title": "Default Value",
+                          "description": "Initial value before any MQTT message is received"
+                        },
+                        "debounce": {
+                          "title": "Debounce (ms)",
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "scale": {
+                          "title": "Scale Factor",
+                          "type": "number",
+                          "description": "Multiply incoming value by this factor"
+                        },
+                        "offset": {
+                          "title": "Offset",
+                          "type": "number",
+                          "description": "Add to value after scaling"
+                        },
+                        "minValue": {
+                          "title": "Min Value",
+                          "type": "number"
+                        },
+                        "maxValue": {
+                          "title": "Max Value",
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

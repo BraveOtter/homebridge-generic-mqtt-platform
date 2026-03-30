@@ -1,22 +1,31 @@
 {
-  "name": "homebridge-plugin-name",
-  "displayName": "Plugin Name",
+  "name": "homebridge-generic-mqtt-platform",
+  "displayName": "Generic MQTT Platform",
   "type": "module",
   "version": "1.0.0",
-  "private": true,
-  "description": "A short description about what your plugin does.",
-  "author": "Your Name",
+  "description": "A generic, extensible Homebridge dynamic platform plugin that bridges MQTT topics to HomeKit services and characteristics.",
+  "author": "",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/USERNAME/GITHUB_PROJECT_NAME#readme",
+  "homepage": "https://github.com/USERNAME/homebridge-generic-mqtt-platform#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "https://github.com/USERNAME/homebridge-generic-mqtt-platform.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/USERNAME/homebridge-generic-mqtt-platform/issues"
   },
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "mqtt",
+    "homekit",
+    "generic",
+    "sensor",
+    "switch",
+    "valve",
+    "battery",
+    "iot",
+    "esp32",
+    "node-red"
   ],
   "main": "dist/index.js",
   "engines": {
@@ -30,7 +39,7 @@
     "watch": "npm run build && npm link && nodemon"
   },
   "dependencies": {
-    "homebridge-lib": "^7.1.12"
+    "mqtt": "^5.12.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -39,7 +48,6 @@
     "homebridge": "^2.0.0-beta.55",
     "nodemon": "^3.1.11",
     "rimraf": "^6.1.0",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4"
   }

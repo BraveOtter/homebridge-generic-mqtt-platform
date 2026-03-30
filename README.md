@@ -1,215 +1,298 @@
-<p align="center">
+# homebridge-generic-mqtt-platform
 
-<img src="https://github.com/homebridge/branding/raw/latest/logos/homebridge-wordmark-logo-vertical.png" width="150">
+A **generic, extensible Homebridge dynamic platform plugin** that bridges MQTT topics to HomeKit services and characteristics. Define your accessories entirely through configuration — no code changes needed.
 
-</p>
+## Features
 
-<span align="center">
+- **Config-driven** — define accessories, services, and characteristics in JSON
+- **Multi-service** — a single accessory can expose multiple HomeKit services (e.g. humidity sensor + battery + valve)
+- **MQTT read/write** — subscribe to topics for state, publish to topics for control
+- **Value mapping** — configurable ON/OFF payloads, JSON path extraction, scale, offset, clamping
+- **State caching** — in-memory state so HomeKit gets instant responses even when devices are asleep (ideal for battery-powered ESP32 devices)
+- **Debounce** — optional per-characteristic rate limiting for noisy sensors
+- **Availability** — optional online/offline tracking via MQTT topic
+- **Clean lifecycle** — proper accessory caching, restoration, and pruning of stale accessories
+- **Extensible** — add new service/characteristic types by adding a single line to the mapper
 
-# Homebridge Platform Plugin Template
+## Supported Service Types
 
-</span>
+| Config Value | HomeKit Service |
+|---|---|
+| `HumiditySensor` | Humidity Sensor |
+| `TemperatureSensor` | Temperature Sensor |
+| `ContactSensor` | Contact Sensor |
+| `LeakSensor` | Leak Sensor |
+| `LightSensor` | Light Sensor |
+| `MotionSensor` | Motion Sensor |
+| `OccupancySensor` | Occupancy Sensor |
+| `SmokeSensor` | Smoke Sensor |
+| `CarbonDioxideSensor` | Carbon Dioxide Sensor |
+| `CarbonMonoxideSensor` | Carbon Monoxide Sensor |
+| `AirQualitySensor` | Air Quality Sensor |
+| `Switch` | Switch |
+| `Outlet` | Outlet |
+| `Valve` | Valve |
+| `Fanv2` | Fan v2 |
+| `Lightbulb` | Lightbulb |
+| `GarageDoorOpener` | Garage Door Opener |
+| `LockMechanism` | Lock Mechanism |
+| `WindowCovering` | Window Covering |
+| `Window` | Window |
+| `Door` | Door |
+| `Thermostat` | Thermostat |
+| `IrrigationSystem` | Irrigation System |
+| `Battery` / `BatteryService` | Battery |
+| `StatelessProgrammableSwitch` | Stateless Programmable Switch |
 
-> [!IMPORTANT]
-> **Homebridge v2.0 Information**
->
-> This template currently has a
-> - `package.json -> engines.homebridge` value of `"^1.8.0 || ^2.0.0-beta.0"`
-> - `package.json -> devDependencies.homebridge` value of `"^2.0.0-beta.0"`
->
-> This is to ensure that your plugin will build and run on both Homebridge v1 and v2.
->
-> Once Homebridge v2.0 has been released, you can remove the `-beta.0` in both places.
+## Installation
 
----
+### From npm (when published)
 
-This is a template Homebridge dynamic platform plugin and can be used as a base to help you get started developing your own plugin.
+```bash
+npm install -g homebridge-generic-mqtt-platform
+```
 
-This template should be used in conjunction with the [developer documentation](https://developers.homebridge.io/). A full list of all supported service types, and their characteristics is available on this site.
+### Local development
 
-### Clone As Template
-
-Click the link below to create a new GitHub Repository using this template, or click the *Use This Template* button above.
-
-<span align="center">
-
-### [Create New Repository From Template](https://github.com/homebridge/homebridge-plugin-template/generate)
-
-</span>
-
-### Setup Development Environment
-
-To develop Homebridge plugins you must have Node.js 20 or later installed, and a modern code editor such as [VS Code](https://code.visualstudio.com/). This plugin template uses [TypeScript](https://www.typescriptlang.org/) to make development easier and comes with pre-configured settings for [VS Code](https://code.visualstudio.com/) and ESLint. If you are using VS Code install these extensions:
-
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-
-### Install Development Dependencies
-
-Using a terminal, navigate to the project folder and run this command to install the development dependencies:
-
-```shell
+```bash
+git clone <repo-url>
+cd homebridge-generic-mqtt-platform
 npm install
-```
-
-### Update package.json
-
-Open the [`package.json`](./package.json) and change the following attributes:
-
-- `name` - this should be prefixed with `homebridge-` or `@username/homebridge-`, is case-sensitive, and contains no spaces nor special characters apart from a dash `-`
-- `displayName` - this is the "nice" name displayed in the Homebridge UI
-- `homepage` - link to your GitHub repo's `README.md`
-- `repository.url` - link to your GitHub repo
-- `bugs.url` - link to your GitHub repo issues page
-
-When you are ready to publish the plugin you should set `private` to false, or remove the attribute entirely.
-
-### Update Plugin Defaults
-
-Open the [`src/settings.ts`](./src/settings.ts) file and change the default values:
-
-- `PLATFORM_NAME` - Set this to be the name of your platform. This is the name of the platform that users will use to register the plugin in the Homebridge `config.json`.
-- `PLUGIN_NAME` - Set this to be the same name you set in the [`package.json`](./package.json) file.
-
-Open the [`config.schema.json`](./config.schema.json) file and change the following attribute:
-
-- `pluginAlias` - set this to match the `PLATFORM_NAME` you defined in the previous step.
-
-See the [Homebridge API docs](https://developers.homebridge.io/#/config-schema#default-values) for more details on the other attributes you can set in the `config.schema.json` file.
-
-### Build Plugin
-
-TypeScript needs to be compiled into JavaScript before it can run. The following command will compile the contents of your [`src`](./src) directory and put the resulting code into the `dist` folder.
-
-```shell
 npm run build
-```
-
-### Link To Homebridge
-
-Run this command so your global installation of Homebridge can discover the plugin in your development environment:
-
-```shell
 npm link
 ```
 
-You can now start Homebridge, use the `-D` flag, so you can see debug log messages in your plugin:
+Then in your Homebridge installation directory:
 
-```shell
-homebridge -D
+```bash
+npm link homebridge-generic-mqtt-platform
 ```
 
-### Watch For Changes and Build Automatically
+## Configuration
 
-If you want to have your code compile automatically as you make changes, and restart Homebridge automatically between changes, you first need to add your plugin as a platform in `./test/hbConfig/config.json`:
-```
+Add to your Homebridge `config.json` under `platforms`:
+
+```json
 {
-...
-    "platforms": [
+  "platform": "GenericMqttPlatform",
+  "name": "Generic MQTT Platform",
+  "mqtt": {
+    "url": "mqtt://mosquitto.homekit.svc.cluster.local:1883",
+    "username": "user",
+    "password": "pass",
+    "baseTopic": "",
+    "keepalive": 60,
+    "qos": 0
+  },
+  "accessories": [
+    {
+      "id": "plant1",
+      "name": "Plant 1",
+      "manufacturer": "DIY",
+      "model": "ESP32-C6 Sensor",
+      "serialNumber": "PLT-001",
+      "availabilityTopic": "irrigation/plant1/availability",
+      "services": [
         {
-            "name": "Config",
-            "port": 8581,
-            "platform": "config"
+          "type": "HumiditySensor",
+          "name": "Soil Humidity",
+          "characteristics": {
+            "CurrentRelativeHumidity": {
+              "getTopic": "irrigation/plant1/humidity",
+              "defaultValue": 0,
+              "minValue": 0,
+              "maxValue": 100
+            }
+          }
         },
         {
-            "name": "<PLUGIN_NAME>",
-            //... any other options, as listed in config.schema.json ...
-            "platform": "<PLATFORM_NAME>"
+          "type": "TemperatureSensor",
+          "name": "Temperature",
+          "characteristics": {
+            "CurrentTemperature": {
+              "getTopic": "irrigation/plant1/temperature",
+              "defaultValue": 20
+            }
+          }
+        },
+        {
+          "type": "Battery",
+          "name": "Battery",
+          "characteristics": {
+            "BatteryLevel": {
+              "getTopic": "irrigation/plant1/battery",
+              "defaultValue": 100
+            },
+            "StatusLowBattery": {
+              "getTopic": "irrigation/plant1/batteryLow",
+              "defaultValue": 0
+            },
+            "ChargingState": {
+              "defaultValue": 2
+            }
+          }
+        },
+        {
+          "type": "Valve",
+          "name": "Irrigation",
+          "characteristics": {
+            "Active": {
+              "getTopic": "irrigation/plant1/pump/state",
+              "setTopic": "irrigation/plant1/pump/set",
+              "onValue": "ON",
+              "offValue": "OFF",
+              "defaultValue": 0
+            },
+            "InUse": {
+              "getTopic": "irrigation/plant1/pump/state",
+              "onValue": "ON",
+              "offValue": "OFF",
+              "defaultValue": 0
+            },
+            "ValveType": {
+              "defaultValue": 1
+            }
+          }
         }
-    ]
+      ]
+    },
+    {
+      "id": "water-tank",
+      "name": "Water Tank",
+      "services": [
+        {
+          "type": "HumiditySensor",
+          "name": "Water Level",
+          "characteristics": {
+            "CurrentRelativeHumidity": {
+              "getTopic": "tank/level",
+              "jsonPath": "data.level",
+              "defaultValue": 50,
+              "debounce": 5000
+            }
+          }
+        },
+        {
+          "type": "LeakSensor",
+          "name": "Low Level Alert",
+          "characteristics": {
+            "LeakDetected": {
+              "getTopic": "tank/lowLevel",
+              "onValue": "true",
+              "offValue": "false",
+              "defaultValue": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "relay1",
+      "name": "Relay Module",
+      "services": [
+        {
+          "type": "Switch",
+          "name": "Channel 1",
+          "subtype": "ch1",
+          "characteristics": {
+            "On": {
+              "getTopic": "devices/relay1/ch1/state",
+              "setTopic": "devices/relay1/ch1/set",
+              "onValue": "ON",
+              "offValue": "OFF"
+            }
+          }
+        },
+        {
+          "type": "Switch",
+          "name": "Channel 2",
+          "subtype": "ch2",
+          "characteristics": {
+            "On": {
+              "getTopic": "devices/relay1/ch2/state",
+              "setTopic": "devices/relay1/ch2/set",
+              "onValue": "ON",
+              "offValue": "OFF"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
-and then you can run:
+## Characteristic Options
 
-```shell
+Each characteristic entry supports:
+
+| Property | Type | Description |
+|---|---|---|
+| `getTopic` | string | MQTT topic to subscribe for reading |
+| `setTopic` | string | MQTT topic to publish when HomeKit writes |
+| `onValue` | string | Payload that means ON / true / active (e.g. `"ON"`) |
+| `offValue` | string | Payload that means OFF / false / inactive (e.g. `"OFF"`) |
+| `jsonPath` | string | Dot-separated path to extract from a JSON payload (e.g. `"data.temperature"`) |
+| `defaultValue` | any | Initial value before any MQTT message is received |
+| `debounce` | number | Minimum interval (ms) between HomeKit updates |
+| `scale` | number | Multiply incoming value by this factor |
+| `offset` | number | Add to value after scaling |
+| `minValue` | number | Clamp minimum |
+| `maxValue` | number | Clamp maximum |
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Watch mode (requires homebridge in PATH and test config)
 npm run watch
+
+# Lint
+npm run lint
 ```
 
-This will launch an instance of Homebridge in debug mode which will restart every time you make a change to the source code. It will load the config stored in the default location under `~/.homebridge`. You may need to stop other running instances of Homebridge while using this command to prevent conflicts. You can adjust the Homebridge startup command in the [`nodemon.json`](./nodemon.json) file.
+## Architecture
 
-### Customise Plugin
-
-You can now start customising the plugin template to suit your requirements.
-
-- [`src/platform.ts`](./src/platform.ts) - this is where your device setup and discovery should go.
-- [`src/platformAccessory.ts`](./src/platformAccessory.ts) - this is where your accessory control logic should go, you can rename or create multiple instances of this file for each accessory type you need to implement as part of your platform plugin. You can refer to the [developer documentation](https://developers.homebridge.io/) to see what characteristics you need to implement for each service type.
-- [`config.schema.json`](./config.schema.json) - update the config schema to match the config you expect from the user. See the [Plugin Config Schema Documentation](https://developers.homebridge.io/#/config-schema).
-
-### Versioning Your Plugin
-
-Given a version number `MAJOR`.`MINOR`.`PATCH`, such as `1.4.3`, increment the:
-
-1. **MAJOR** version when you make breaking changes to your plugin,
-2. **MINOR** version when you add functionality in a backwards compatible manner, and
-3. **PATCH** version when you make backwards compatible bug fixes.
-
-You can use the `npm version` command to help you with this:
-
-```shell
-# major update / breaking changes
-npm version major
-
-# minor update / new features
-npm version update
-
-# patch / bugfixes
-npm version patch
+```
+src/
+├── index.ts                  # Plugin entry — registers the platform
+├── settings.ts               # Plugin name and platform name constants
+├── config.ts                 # TypeScript interfaces for the config
+├── config-validator.ts       # Config validation with clear error messages
+├── platform.ts               # DynamicPlatformPlugin — MQTT connect + accessory lifecycle
+├── accessory-handler.ts      # Wires a single accessory's services/characteristics to MQTT
+├── mqtt-client.ts            # MQTT client wrapper (connect, subscribe, publish)
+├── service-mapper.ts         # Config string → HAP Service constructor mapping
+└── characteristic-mapper.ts  # Config string → HAP Characteristic constructor mapping
 ```
 
-### Publish Package
+### Extension points
 
-When you are ready to publish your plugin to [npm](https://www.npmjs.com/), make sure you have removed the `private` attribute from the [`package.json`](./package.json) file then run:
+- **Add a new service type**: add one entry to `service-mapper.ts`
+- **Add a new characteristic**: add one entry to `characteristic-mapper.ts`
+- **Custom value transforms**: extend `decodeValue` / `encodeValue` in `accessory-handler.ts`
 
-```shell
-npm publish
-```
+## Design Decisions
 
-If you are publishing a scoped plugin, i.e. `@username/homebridge-xxx` you will need to add `--access=public` to command the first time you publish.
+- **State caching**: All characteristic values are stored in memory so HomeKit receives immediate responses even when battery-powered devices are sleeping. The last MQTT message is always the authoritative state.
+- **No hardcoded device logic**: The plugin does not know about "plants", "pumps", or "tanks" — it only knows about HomeKit services, characteristics, and MQTT topics.
+- **Graceful degradation**: If MQTT is disconnected, previously cached state is still served. Reconnection is automatic.
 
-#### Publishing Beta Versions
+## Limitations & Future Improvements
 
-You can publish *beta* versions of your plugin for other users to test before you release it to everyone.
+- **Retained messages**: The plugin subscribes on connect; retained messages from the broker are received automatically. No explicit "get on connect" polling is implemented yet.
+- **Wildcard topics**: MQTT wildcard subscriptions (`+`, `#`) are not supported. Each characteristic maps to exactly one topic.
+- **Payload transforms**: Only linear transforms (scale + offset) and JSON path extraction are supported. A future version could support expression-based or template-based transforms.
+- **Topic templates**: Topics are configured per-characteristic. A future version could support `{{id}}` templates to reduce config repetition.
+- **Polling fallback**: Not implemented. Could be added for devices that do not publish retained messages.
+- **Last seen timestamp**: Not tracked yet. Could be exposed as a custom characteristic or logged.
+- **Multiple platforms**: The schema is set as `singular: true`. If multiple MQTT brokers are needed, this could be changed to support multiple platform instances.
 
-```shell
-# create a new pre-release version (eg. 2.1.0-beta.1)
-npm version prepatch --preid beta
+## License
 
-# publish to @beta
-npm publish --tag beta
-```
-
-Users can then install the  *beta* version by appending `@beta` to the install command, for example:
-
-```shell
-sudo npm install -g homebridge-example-plugin@beta
-```
-
-### Best Practices
-
-Consider creating your plugin with the [Homebridge Verified](https://github.com/homebridge/verified) criteria in mind. This will help you to create a plugin that is easy to use and works well with Homebridge.
-You can then submit your plugin to the Homebridge Verified list for review.
-The most up-to-date criteria can be found [here](https://github.com/homebridge/verified#requirements).
-For reference, the current criteria are:
-
-- **General**
-  - The plugin must be of type [dynamic platform](https://developers.homebridge.io/#/#dynamic-platform-template).
-  - The plugin must not offer the same nor less functionality than that of any existing **verified** plugin.
-- **Repo**
-  - The plugin must be published to NPM and the source code available on a GitHub repository, with issues enabled.
-  - A GitHub release should be created for every new version of your plugin, with release notes.
-- **Environment**
-  - The plugin must run on all [supported LTS versions of Node.js](https://github.com/homebridge/homebridge/wiki/How-To-Update-Node.js), at the time of writing this is Node v18, v20 and v22.
-  - The plugin must successfully install and not start unless it is configured.
-  - The plugin must not execute post-install scripts that modify the users' system in any way.
-  - The plugin must not require the user to run Homebridge in a TTY or with non-standard startup parameters, even for initial configuration.
-- **Codebase**
-  - The plugin must implement the [Homebridge Plugin Settings GUI](https://developers.homebridge.io/#/config-schema).
-  - The plugin must not contain any analytics or calls that enable you to track the user.
-  - If the plugin needs to write files to disk (cache, keys, etc.), it must store them inside the Homebridge storage directory.
-  - The plugin must not throw unhandled exceptions, the plugin must catch and log its own errors.
-
-### Useful Links
-
-Note these links are here for help but are not supported/verified by the Homebridge team
-
-- [Custom Characteristics](https://github.com/homebridge/homebridge-plugin-template/issues/20)
+Apache-2.0
