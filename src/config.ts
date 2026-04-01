@@ -73,6 +73,8 @@ export interface ServiceConfig {
    * multiple services of the same type.
    */
   subtype?: string;
+  /** Whether MQTT messages published by this service use the retain flag (default: false) */
+  retain?: boolean;
   /** Map of characteristic name → characteristic config */
   characteristics: Record<string, CharacteristicConfig>;
 }

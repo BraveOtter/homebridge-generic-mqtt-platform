@@ -150,7 +150,7 @@ export class AccessoryHandler {
           this.state.set(stateKey, { value, lastUpdate: Date.now() });
           const payload = this.encodeValue(value, charConfig);
           this.log.debug('[%s] SET %s → "%s" (topic: %s)', this.config.id, charName, payload, charConfig.setTopic);
-          this.mqttClient.publish(charConfig.setTopic!, payload);
+          this.mqttClient.publish(charConfig.setTopic!, payload, svcConfig.retain ?? false);
         });
       }
     }

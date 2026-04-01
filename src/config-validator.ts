@@ -17,6 +17,10 @@ export function validateConfig(config: GenericMqttPlatformConfig, log: Logging):
     log.error('Config validation: "mqtt.url" is required and must be a string');
     return false;
   }
+  if (!/^mqtts?:\/\//i.test(config.mqtt.url) && !/^wss?:\/\//i.test(config.mqtt.url)) {
+    log.error('Config validation: "mqtt.url" must start with mqtt://, mqtts://, ws://, or wss:// (got "%s")', config.mqtt.url);
+    return false;
+  }
 
   // Accessories array
   if (!Array.isArray(config.accessories) || config.accessories.length === 0) {

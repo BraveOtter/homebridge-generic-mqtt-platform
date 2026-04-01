@@ -138,6 +138,12 @@
                     "type": "string",
                     "description": "Required when using multiple services of the same type"
                   },
+                  "retain": {
+                    "title": "Retain",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether MQTT messages published by this service use the retain flag"
+                  },
                   "characteristics": {
                     "title": "Characteristics",
                     "type": "object",

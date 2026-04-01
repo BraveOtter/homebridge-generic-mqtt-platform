@@ -34,7 +34,12 @@ export class MqttClientWrapper {
       clean: true,
     };
 
-    this.client = mqtt.connect(this.mqttConfig.url, opts);
+    try {
+      this.client = mqtt.connect(this.mqttConfig.url, opts);
+    } catch (err) {
+      this.log.error('MQTT connect failed: %s', (err as Error).message);
+      return;
+    }
 
     this.client.on('connect', () => {
       this.connected = true;
@@ -92,13 +97,13 @@ export class MqttClientWrapper {
   }
 
   /** Publish a message to a topic. */
-  publish(topic: string, payload: string): void {
+  publish(topic: string, payload: string, retain = false): void {
     const fullTopic = this.resolveTopic(topic);
     if (!this.client || !this.connected) {
       this.log.warn('MQTT not connected — cannot publish to "%s"', fullTopic);
       return;
     }
-    this.client.publish(fullTopic, payload, { qos: this.mqttConfig.qos ?? 0, retain: false }, (err) => {
+    this.client.publish(fullTopic, payload, { qos: this.mqttConfig.qos ?? 0, retain }, (err) => {
       if (err) {
         this.log.error('MQTT publish error for "%s": %s', fullTopic, err.message);
       } else {
