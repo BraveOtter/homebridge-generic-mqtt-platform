@@ -2,7 +2,7 @@
   "name": "homebridge-generic-mqtt-platform",
   "displayName": "Generic MQTT Platform",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A generic, extensible Homebridge dynamic platform plugin that bridges MQTT topics to HomeKit services and characteristics.",
   "author": "",
   "license": "Apache-2.0",
